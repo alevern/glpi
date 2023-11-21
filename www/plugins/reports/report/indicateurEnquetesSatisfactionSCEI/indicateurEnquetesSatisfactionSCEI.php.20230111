@@ -1,0 +1,82 @@
+<?php
+/*
+ * listeTickets.php 2013-03 L STECK SCI
+ -------------------------------------------------------------------------
+ reports - Additional reports plugin for GLPI
+ Copyright (C) 2003-2011 by the reports Development Team.
+
+ https://forge.indepnet.net/projects/reports
+ -------------------------------------------------------------------------
+ --------------------------------------------------------------------------
+ */
+
+
+$NEEDED_ITEMS = array("search");
+$USEDBREPLICATE = 1;
+$DBCONNECTION_REQUIRED = 1;
+
+
+define('GLPI_ROOT', '../../../..');
+include (GLPI_ROOT . "/inc/includes.php");
+
+// initialise le nouveau rapport
+//#$report = new PluginReportsAutoReport('listeTickets');
+
+$report = new PluginReportsAutoReport(__('test', 'reports'));
+
+
+//d�finit la date de création du ticket comme critère de recherc sous forme d'intervalle de date
+$date = new PluginReportsDateIntervalCriteria($report, "date");
+
+
+$report->displayCriteriasForm();
+
+
+if ($report->criteriasValidated()) {
+
+   echo "<table class='tab_cadrehov' cellpadding='5'>";
+   echo "<tr><td><th> Rapport sur le nombre d\'enquêtes de satisfaction envoyées</th></td></tr>";
+   echo "</table>";
+   echo "<br><br>";
+   
+
+//   $report->setColumnsNames(array( 'nbTickets' => "Nombre de tickets") ); 
+
+   // Sélection du nombre de tikets sur la période
+   $query = "select count(*) as 'nbTickets' from glpi_tickets ".
+            $report->addSqlCriteriasRestriction("WHERE").
+            " and entities_id = 9 ". 
+            " and status = 6 " ;
+
+
+   $res  = $DB->query($query);
+   if($DB->numrows($res) > 0) {
+      while ($data = $DB->fetch_array($res)) {
+         $nbTickets =  $data[0];
+         }
+
+
+      echo "<table class='tab_cadrehov' cellpadding='5'>";
+      echo "<tr><td><th> Nombre d'énquêtes envoyées sur la période</th></td>".
+        " <td>$nbTickets</td></tr>";
+      echo "</table>";
+      }
+    else {
+echo "*** rien";
+      echo "<table class='tab_cadrehov' cellpadding='5'>";
+      echo "<tr><td><th> Nombre d'énquêtes envoyées sur la période</th></td>".
+        " <td>0</td></tr>";
+      echo "</table>";
+
+      }
+         
+   }
+
+      
+
+
+
+
+?>
+
+

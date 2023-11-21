@@ -1,0 +1,41 @@
+<?php
+/*
+ * listeTickets.php 2013-03 L STECK SCI
+ -------------------------------------------------------------------------
+ reports - Additional reports plugin for GLPI
+ Copyright (C) 2003-2011 by the reports Development Team.
+
+ https://forge.indepnet.net/projects/reports
+ -------------------------------------------------------------------------
+ --------------------------------------------------------------------------
+ */
+
+
+$NEEDED_ITEMS = array("search");
+$USEDBREPLICATE = 1;
+$DBCONNECTION_REQUIRED = 0;
+
+define('GLPI_ROOT', '../../../..');
+include (GLPI_ROOT . "/inc/includes.php");
+
+// initialise le nouveau rapport
+$report = new PluginReportsAutoReport('listeTickets');
+
+//d�finit la date de création du ticket comme critère de recherc sous forme d'intervalle de date
+$date = new PluginReportsDateIntervalCriteria($report, "date");
+
+$report->displayCriteriasForm();
+
+
+if ($report->criteriasValidated()) {
+
+   $report->setColumnsNames(array( 'id' => "No de ticket", 'name' => 'Nom', 'date' => "date", 'status' => "Statut")); 
+
+   $query = "SELECT id, name, date, status FROM glpi_tickets ".
+            $report->addSqlCriteriasRestriction("WHERE");
+
+
+   $report->setSqlRequest($query);
+   $report->execute();
+   }
+?>

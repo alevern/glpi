@@ -1,0 +1,57 @@
+version: '3'
+
+networks:
+  default:
+    driver: bridge
+
+services:
+  mariadb:
+    image: mariadb:10.3
+    environment:
+      MYSQL_ROOT_PASSWORD: superPW
+      MYSQL_USER: femto-glpi
+      MYSQL_PASSWORD: femto-pass
+      MYSQL_DATABASE: glpi
+    volumes:
+      - ./sql/dump.sql:/docker-entrypoint-initdb.d/dump.sql
+      # - ./www/database_schema:/sql
+    restart: always
+  
+  php:
+    # user: "${UID}:${GID}"
+    build:
+      context: ./php-img
+    volumes:
+      - ./www:/var/www/
+      - ./logs:/logs/
+    restart: always
+  
+  bwebserver:
+    image: nginx
+      #    ports:
+      #     - "8081:80"
+    # user: "${UID}:${GID}"
+    depends_on:
+      - "mariadb"
+      - "php"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.bwebserver.rule=Host(`glpi.localhost`)"
+      - "traefik.http.routers.bwebserver.entrypoints=web"
+    volumes:
+      - ./www:/var/www/
+      - /home/avernotte/Repositories/gravity/gravity-data-collector/dist-sandbox:/home/avernotte/Docker/femto_glpi/www/js/gravity/
+      - ./sites:/etc/nginx/conf.d
+
+  traefik:
+    image: traefik:v2.9
+    command:
+      #- "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - 80:80
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
